@@ -65,3 +65,10 @@ Table name: employment
 
 4. **Results**
 We processed and output the datasets.
+
+
+### Process explained step-by-step:
+```python:
+#  Import Pandas at rst to be able to load data to a dataframe:
+import pandas as pd
+```
