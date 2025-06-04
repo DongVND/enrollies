@@ -68,7 +68,55 @@ We processed and output the datasets.
 
 
 ### Process explained step-by-step:
+##Part 1. Extract - gather data from multiple sources 
+#Step1. Import Pandas to load data to a dataframe:
 ```python:
-#  Import Pandas at rst to be able to load data to a dataframe:
 import pandas as pd
 ```
+#extract enrollies data from google sheet
+```python:
+google_sheet_id = '1VCkHwBjJGRJ21asd9pxW4_0z2PWuKhbLR3gUHm-p4GI'
+url='https://docs.google.com/spreadsheets/d/' + google_sheet_id + '/export?format=xlsx'
+enrollies_df = pd.read_excel(url, sheet_name ='enrollies')
+```
+#extract enrollies education and work experience from excel file and csv file accordingly:
+```python:
+enrollies_education_df = pd.read_excel('/content/enrollies_education.xlsx',sheet_name= 'enrollies_education')
+work_experience_df = pd.read_csv('/content/work_experience.csv')
+```
+#import SQLAlchemy and install pymysql to load data from a MySQL database
+```python:
+from sqlalchemy import create_engine
+!pip install pymysql
+```
+#create connection to a database named company_course:
+Driver: mysql+pymysql
+Login: etl_practice
+Password: 550814
+Host: 112.213.86.31
+Port: 3360
+Database Name: company_course
+
+```python:
+engine = create_engine('mysql+pymysql://etl_practice:550814@112.213.86.31:3360/company_course')
+```
+create dataframe from table1 name: training_hours
+```python:
+training_hours_df = pd.read_sql_table("training_hours", con=engine)
+```
+create dataframe from table2 name: employment
+```python:
+employment_df = pd.read_sql_table("employment", con=engine)
+```
+
+#Load the first table from a web page for city development info:
+```python:
+page_url = "https://sca-programming-school.github.io/city_development_index/index.html"
+city_development_index_df = pd.read_html(page_url)[0]
+```
+
+
+
+
+
+
