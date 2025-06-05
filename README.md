@@ -73,7 +73,7 @@ We processed and output the datasets.
 ```python:
 import pandas as pd
 ```
-#extract enrollies data from google sheet
+#extract enrollies data from google sheet:
 ```python:
 google_sheet_id = '1VCkHwBjJGRJ21asd9pxW4_0z2PWuKhbLR3gUHm-p4GI'
 url='https://docs.google.com/spreadsheets/d/' + google_sheet_id + '/export?format=xlsx'
@@ -84,7 +84,7 @@ enrollies_df = pd.read_excel(url, sheet_name ='enrollies')
 enrollies_education_df = pd.read_excel('/content/enrollies_education.xlsx',sheet_name= 'enrollies_education')
 work_experience_df = pd.read_csv('/content/work_experience.csv')
 ```
-#import SQLAlchemy and install pymysql to load data from a MySQL database
+#import SQLAlchemy and install pymysql to load data from a MySQL database:
 ```python:
 from sqlalchemy import create_engine
 !pip install pymysql
@@ -100,11 +100,11 @@ Database Name: company_course
 ```python:
 engine = create_engine('mysql+pymysql://etl_practice:550814@112.213.86.31:3360/company_course')
 ```
-create dataframe from table1 name: training_hours
+#create dataframe from table1 named [training_hours]:
 ```python:
 training_hours_df = pd.read_sql_table("training_hours", con=engine)
 ```
-create dataframe from table2 name: employment
+#create dataframe from table2 named [employment]:
 ```python:
 employment_df = pd.read_sql_table("employment", con=engine)
 ```
@@ -114,6 +114,52 @@ employment_df = pd.read_sql_table("employment", con=engine)
 page_url = "https://sca-programming-school.github.io/city_development_index/index.html"
 city_development_index_df = pd.read_html(page_url)[0]
 ```
+
+### Transform data with the following steps:
+- fixing data types
+- handling missing value 
+- removing duplicate
+- unifying (consistency) format
+
+First, let's check the info of enrollies data:
+```
+enrollies_df.info()
+```
+We got the result as:
+RangeIndex: 19158 entries, 0 to 19157
+Data columns (total 4 columns):
+ #   Column       Non-Null Count  Dtype 
+---  ------       --------------  ----- 
+ 0   enrollee_id  19158 non-null  int64 
+ 1   full_name    19158 non-null  object
+ 2   city         19158 non-null  object
+ 3   gender       14650 non-null  object
+dtypes: int64(1), object(3)
+
+--> there are 2 issues: missing values for gender and Dtype of (full_name, city and gender) are object.
+Let's fill missing value and change columns 1-2 into string dtypes, while columns 3 shoulb turn into category dtypes.
+
+```
+#fix data type for enrollies_df
+enrollies_df.full_name = enrollies_df.full_name.astype('string')
+enrollies_df.city = enrollies_df.city.astype('string')
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
