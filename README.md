@@ -67,9 +67,9 @@ Table name: employment
 We processed and output the datasets.
 
 
-### Process explained step-by-step:
-##Part 1. Extract - gather data from multiple sources 
-#Step1. Import Pandas to load data to a dataframe:
+#### Process explained step-by-step:
+###Part 1. Extract - gather data from multiple sources 
+##Step1. Import Pandas to load data to a dataframe:
 ```python:
 import pandas as pd
 ```
@@ -89,27 +89,26 @@ work_experience_df = pd.read_csv('/content/work_experience.csv')
 from sqlalchemy import create_engine
 !pip install pymysql
 ```
-#create connection to a database named company_course:
-Driver: mysql+pymysql
-Login: etl_practice
-Password: 550814
-Host: 112.213.86.31
-Port: 3360
-Database Name: company_course
-
+create connection to a database named company_course:
+- Driver: mysql+pymysql
+- Login: etl_practice
+- Password: 550814
+- Host: 112.213.86.31
+- Port: 3360
+- Database Name: company_course
 ```python:
 engine = create_engine('mysql+pymysql://etl_practice:550814@112.213.86.31:3360/company_course')
 ```
-#create dataframe from table1 named [training_hours]:
+create dataframe from table1 named [training_hours]:
 ```python:
 training_hours_df = pd.read_sql_table("training_hours", con=engine)
 ```
-#create dataframe from table2 named [employment]:
+create dataframe from table2 named [employment]:
 ```python:
 employment_df = pd.read_sql_table("employment", con=engine)
 ```
 
-#Load the first table from a web page for city development info:
+Load the first table from a web page for city development info:
 ```python:
 page_url = "https://sca-programming-school.github.io/city_development_index/index.html"
 city_development_index_df = pd.read_html(page_url)[0]
@@ -121,7 +120,9 @@ city_development_index_df = pd.read_html(page_url)[0]
 - removing duplicate
 - unifying (consistency) format
 
-First, let's check the info of enrollies data:
+## First, let's start with enrollies data (enrollies_df)
+
+check the info of enrollies data:
 ```
 enrollies_df.info()
 ```
@@ -138,31 +139,111 @@ Data columns (total 4 columns):
 dtypes: int64(1), object(3)
 ```
 --> there are 2 issues: missing values for gender and Dtype of (full_name, city and gender) are object.
-Let's fill missing value and change columns 1-2 into string dtypes, while columns 3 shoulb turn into category dtypes.
+Let's fill missing value and change columns 1-2 into string dtypes, while columns 3 should turn into category dtypes.
 
 ```
-#fix data type for enrollies_df
+#fix data type for the enrollies_df full_name and city columns
 enrollies_df.full_name = enrollies_df.full_name.astype('string')
 enrollies_df.city = enrollies_df.city.astype('string')
 ```
+```
+#fill missing value for the enrollies_df.gender column
+enrollies_df.gender = enrollies_df.gender.fillna(enrollies_df.gender.mode()[0])
+enrollies_df.gender = enrollies_df.gender.astype('category')
+```
+
+The result after our fixes:
+```
+RangeIndex: 19158 entries, 0 to 19157
+Data columns (total 4 columns):
+ #   Column       Non-Null Count  Dtype   
+---  ------       --------------  -----   
+ 0   enrollee_id  19158 non-null  int64   
+ 1   full_name    19158 non-null  string  
+ 2   city         19158 non-null  string  
+ 3   gender       19158 non-null  category
+dtypes: category(1), int64(1), string(2)
+```
+As in the above info, data is fulfilled and dtypes are as supposed.
+
+Next, let's check for duplicates in enrollies_df, if none we can skip:
+```
+enrollies_df.duplicated().sum()
+```
+-> The result is (0), so we don't have to remove duplicates.
 
 
+## Now, we move on to the next set, enrollies_education.df
+(Repeat the same steps as enrollies_df)
+- Check info of the dataframe:
+```
+enrollies_education.info()
+```
+The result show us there are missing value for enrolled_university, education_level and major_discipline.
+Also, their data types are not ideal.
+```
+RangeIndex: 19158 entries, 0 to 19157
+Data columns (total 4 columns):
+ #   Column               Non-Null Count  Dtype 
+---  ------               --------------  ----- 
+ 0   enrollee_id          19158 non-null  int64 
+ 1   enrolled_university  18772 non-null  object
+ 2   education_level      18698 non-null  object
+ 3   major_discipline     16345 non-null  object
+dtypes: int64(1), object(3)
+```
+Let's start with filling the missing value, those should be 'unknown'
+```
+enrollies_education.enrolled_university = enrollies_education.enrolled_university.fillna('unknown')
+enrollies_education.education_level = enrollies_education.education_level.fillna('unknown')
+enrollies_education.major_discipline = enrollies_education.major_discipline.fillna('unknown')
+```
+Those columns are also need to be set dtypes as 'category' for optimization.
+```
+cat_cols = ['enrolled_university','education_level','major_discipline']
+enrollies_education[cat_cols] = enrollies_education[cat_cols].astype('category')
+```
 
+The result should be as below:
+```
+RangeIndex: 19158 entries, 0 to 19157
+Data columns (total 4 columns):
+ #   Column               Non-Null Count  Dtype   
+---  ------               --------------  -----   
+ 0   enrollee_id          19158 non-null  int64   
+ 1   enrolled_university  19158 non-null  category
+ 2   education_level      19158 non-null  category
+ 3   major_discipline     19158 non-null  category
+dtypes: category(3), int64(1)
+```
 
+### For the training_hours_df, employment_df and city_development_df, We didn't find any issue after checking.
+We may use these following codes to check:
+```
+#checking traning hours data:
+training_hours_df.info()
+#checking employment data:
+employment_df.info()
+#checking city development data:
+city_development_index_df.info()
+```
 
+#### Final steps, LOADING data to database:
+```
+#creat a new database and engine to load the newly processed data
+db= 'data_warehouse.db'
+target_db_engine = create_engine('sqlite:///data_warehouse.db')
 
+#using method pandas.DataFrame.to_sql to load them:
+employment_df.to_sql('Fact_employment', target_db_engine, if_exists='replace',index=False)
+enrollies_df.to_sql('dim_enroll',target_db_engine, if_exists='replace',index=False)
+enrollies_education_df.to_sql('dim_edu',target_db_engine, if_exists='replace',index=False)
+training_hours_df.to_sql('dim_training_hours',target_db_engine, if_exists='replace',index=False)
+work_experience_df.to_sql('dim_work_exp',target_db_engine, if_exists='replace',index=False)
+city_development_index_df.to_sql('dim_city_dev',target_db_engine, if_exists='replace',index=False)
+```
 
-
-
-
-
-
-
-
-
-
-
-
+###$ We completed the ETL process of the datasets.
 
 
 
