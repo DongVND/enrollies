@@ -125,6 +125,7 @@ First, let's check the info of enrollies data:
 ```
 enrollies_df.info()
 ```
+```
 We got the result as:
 RangeIndex: 19158 entries, 0 to 19157
 Data columns (total 4 columns):
@@ -135,7 +136,7 @@ Data columns (total 4 columns):
  2   city         19158 non-null  object
  3   gender       14650 non-null  object
 dtypes: int64(1), object(3)
-
+```
 --> there are 2 issues: missing values for gender and Dtype of (full_name, city and gender) are object.
 Let's fill missing value and change columns 1-2 into string dtypes, while columns 3 shoulb turn into category dtypes.
 
