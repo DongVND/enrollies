@@ -1,4 +1,4 @@
-# enrollies
+# ENROLLIES
 # HR Analytics: Job Change of Data Scientists
 I made a simple ETL process on data of enrollies
 
